@@ -1,0 +1,14 @@
+# ESP32-C6 Zigbee Fan Switch - Custom Partition Table
+# Name,   Type, SubType, Offset,   Size,     Flags
+# Notes: 
+#   - nvs: Non-volatile storage for Zigbee network credentials and settings
+#   - phy_init: PHY initialization data
+#   - factory: Main application partition
+#   - zb_storage: Zigbee stack persistent storage
+#   - zb_fct: Zigbee factory reset partition
+
+nvs,        data, nvs,     0x9000,   0x6000,
+phy_init,   data, phy,     0xf000,   0x1000,
+factory,    app,  factory, 0x10000,  0x100000,
+zb_storage, data, fat,     0x110000, 0x10000,
+zb_fct,     data, fat,     0x120000, 0x1000,

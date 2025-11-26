@@ -1,0 +1,10 @@
+# ESP-IDF Component Manager Dependencies
+# This file specifies the required components from the ESP Component Registry
+
+dependencies:
+  # ESP Zigbee Library from Espressif Component Registry
+  espressif/esp-zigbee-lib:
+    version: "~1.2.0"
+  
+  # LED Strip driver (optional, can be used for status LED)
+  # espressif/led_strip: "~2.0.0"
