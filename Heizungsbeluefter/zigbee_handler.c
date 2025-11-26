@@ -16,6 +16,21 @@
 #include "esp_check.h"
 #include <string.h>
 
+/* Compatibility defaults for Zigbee platform config (missing in some Arduino SDK releases) */
+#ifndef ESP_ZB_DEFAULT_RADIO_CONFIG
+#define ESP_ZB_DEFAULT_RADIO_CONFIG() \
+    (esp_zb_radio_config_t){          \
+        .radio_mode = ZB_RADIO_MODE_NATIVE, \
+    }
+#endif
+
+#ifndef ESP_ZB_DEFAULT_HOST_CONFIG
+#define ESP_ZB_DEFAULT_HOST_CONFIG() \
+    (esp_zb_host_config_t){          \
+        .host_connection_mode = ZB_HOST_CONNECTION_MODE_NONE, \
+    }
+#endif
+
 /* =============================================================================
  * Private Constants and Variables
  * ============================================================================= */
@@ -106,6 +121,18 @@ static void zb_zdo_signal_handler(esp_zb_app_signal_t *signal_struct)
                      esp_err_to_name(err_status));
             break;
     }
+}
+
+/**
+ * @brief Entry point invoked by Zigbee stack for ZDO signals
+ */
+void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
+{
+    if (!signal_struct) {
+        ESP_LOGW(TAG, "Received null Zigbee signal struct");
+        return;
+    }
+    zb_zdo_signal_handler(signal_struct);
 }
 
 /**
@@ -292,9 +319,6 @@ esp_err_t zigbee_handler_init(void)
     
     /* Register action handler for attribute changes */
     esp_zb_core_action_handler_register(zb_action_handler);
-    
-    /* Register ZDO signal handler for network events */
-    esp_zb_app_signal_handler_register(zb_zdo_signal_handler);
     
     /* Set primary channel mask (all channels) */
     esp_zb_set_primary_network_channel_set(ESP_ZB_TRANSCEIVER_ALL_CHANNELS_MASK);

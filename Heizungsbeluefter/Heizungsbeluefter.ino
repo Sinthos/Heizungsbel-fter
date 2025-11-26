@@ -1,19 +1,20 @@
 /**
- * @file app_main.c
- * @brief Main application for ESP32-C6 Zigbee Fan Switch
+ * @file Heizungsbeluefter.ino
+ * @brief Arduino Sketch for ESP32-C6 Zigbee Fan Switch
  * 
- * This is the entry point for the Zigbee-controlled fan switch.
- * It initializes all subsystems and starts the Zigbee stack.
+ * This sketch implements a Zigbee-controlled fan switch using the ESP32-C6.
+ * It uses the ESP-IDF Zigbee stack through the Arduino ESP32 core.
  * 
- * Application Flow:
- *   1. Initialize NVS (Non-Volatile Storage)
- *   2. Initialize relay GPIO (default: OFF)
- *   3. Initialize Zigbee stack
- *   4. Register relay control callback
- *   5. Start Zigbee stack (enters main loop)
+ * Hardware:
+ *   - ESP32-C6 Dev Module
+ *   - Relay Module connected to GPIO8
  * 
- * The device operates as a Zigbee End Device with an On/Off Light
- * endpoint that controls a relay connected to a 230V fan.
+ * Setup Instructions:
+ *   1. Select Board: "ESP32C6 Dev Module"
+ *   2. Zigbee Mode: "Enabled" (Tools -> Zigbee Mode)
+ *   3. Partition Scheme: "Custom" (Uses partitions.csv in sketch folder)
+ *      OR select a scheme with at least 1MB App + NVS + Zigbee partitions.
+ *      Ideally, use the provided partitions.csv.
  */
 
 #include <stdio.h>
@@ -59,27 +60,22 @@ static void on_zigbee_on_off_command(bool on)
 }
 
 /* =============================================================================
- * Application Entry Point
+ * Arduino Setup & Loop
  * ============================================================================= */
 
-/**
- * @brief Main application entry point
- * 
- * Initializes all subsystems and starts the Zigbee stack.
- * This function does not return under normal operation.
- */
-void app_main(void)
+void setup()
 {
+    // Serial init for logging
+    Serial.begin(115200);
+    // Wait a bit for serial to stabilize
+    delay(1000);
+
     ESP_LOGI(TAG, "========================================");
     ESP_LOGI(TAG, "ESP32-C6 Zigbee Fan Switch Starting...");
     ESP_LOGI(TAG, "========================================");
     
     /* -------------------------------------------------------------------------
      * Step 1: Initialize NVS (Non-Volatile Storage)
-     * 
-     * NVS is required for storing Zigbee network credentials and settings.
-     * If the NVS partition is corrupted or uses an old format, we erase
-     * and reinitialize it.
      * ------------------------------------------------------------------------- */
     ESP_LOGI(TAG, "Initializing NVS...");
     
@@ -95,9 +91,6 @@ void app_main(void)
     
     /* -------------------------------------------------------------------------
      * Step 2: Initialize Relay GPIO
-     * 
-     * The relay GPIO is configured as output with initial state OFF.
-     * This is a failsafe to prevent the fan from starting unexpectedly.
      * ------------------------------------------------------------------------- */
     ESP_LOGI(TAG, "Initializing relay...");
     
@@ -111,9 +104,6 @@ void app_main(void)
     
     /* -------------------------------------------------------------------------
      * Step 3: Initialize Zigbee Stack
-     * 
-     * Configures the ESP32-C6 as a Zigbee End Device with an On/Off Light
-     * endpoint. The device will automatically try to join a Zigbee network.
      * ------------------------------------------------------------------------- */
     ESP_LOGI(TAG, "Initializing Zigbee...");
     
@@ -125,9 +115,6 @@ void app_main(void)
     
     /* -------------------------------------------------------------------------
      * Step 4: Register Relay Control Callback
-     * 
-     * Links the Zigbee On/Off commands to the relay control function.
-     * When a Zigbee command is received, the relay will be switched.
      * ------------------------------------------------------------------------- */
     zigbee_handler_register_on_off_callback(on_zigbee_on_off_command);
     
@@ -147,15 +134,14 @@ void app_main(void)
     /* -------------------------------------------------------------------------
      * Step 5: Start Zigbee Stack
      * 
-     * This starts the Zigbee stack and enters the main loop.
-     * The function does not return under normal operation.
-     * The device will automatically:
-     *   - Search for a Zigbee coordinator
-     *   - Join the network
-     *   - Handle On/Off commands
+     * This calls esp_zb_start() and esp_zb_stack_main_loop().
+     * Since esp_zb_stack_main_loop() is blocking, setup() will NEVER return.
+     * loop() will never be called. This is expected for this implementation.
      * ------------------------------------------------------------------------- */
     zigbee_handler_start();
-    
-    /* We should never reach here under normal operation */
-    ESP_LOGE(TAG, "Zigbee main loop exited unexpectedly!");
+}
+
+void loop()
+{
+    // This code is unreachable because zigbee_handler_start() blocks.
 }
